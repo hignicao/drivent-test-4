@@ -8,7 +8,7 @@ export async function getBooking(req: AuthenticatedRequest, res: Response) {
 
   try {
     const booking = await bookingService.findBooking(Number(userId));
-    return res.send(booking).status(httpStatus.OK);
+    return res.status(httpStatus.OK).send(booking);
   } catch (error) {
     if (error.name === 'NotFoundError') return res.sendStatus(httpStatus.NOT_FOUND);
     return res.sendStatus(httpStatus.BAD_REQUEST);
@@ -18,10 +18,13 @@ export async function getBooking(req: AuthenticatedRequest, res: Response) {
 export async function postBooking(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
   const { roomId } = req.body;
+  if (!roomId) {
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
 
   try {
-    const bookingId = await bookingService.createBooking(Number(userId), Number(roomId));
-    return res.send(bookingId).status(httpStatus.OK);
+    const booking = await bookingService.createBooking(Number(userId), Number(roomId));
+    return res.status(httpStatus.OK).send({ bookingId: booking.id });
   } catch (error) {
     if (error.name === 'NotFoundError') return res.sendStatus(httpStatus.NOT_FOUND);
     if (error.name === 'ForbiddenError') return res.sendStatus(httpStatus.FORBIDDEN);
@@ -32,11 +35,14 @@ export async function postBooking(req: AuthenticatedRequest, res: Response) {
 export async function putBooking(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
   const { roomId } = req.body;
+  if (!roomId) {
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
   const bookingId = req.params.bookingId;
 
   try {
-    const newBookingId = await bookingService.updateBooking(Number(userId), Number(roomId), Number(bookingId));
-    return res.send(newBookingId).status(httpStatus.OK);
+    const newBooking = await bookingService.updateBooking(Number(userId), Number(roomId), Number(bookingId));
+    return res.status(httpStatus.OK).send({ bookingId: newBooking.id });
   } catch (error) {
     if (error.name === 'NotFoundError') return res.sendStatus(httpStatus.NOT_FOUND);
     if (error.name === 'ForbiddenError') return res.sendStatus(httpStatus.FORBIDDEN);
